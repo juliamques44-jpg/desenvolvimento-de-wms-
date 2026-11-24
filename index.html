@@ -1,0 +1,2499 @@
+<!doctype html>
+<html lang="pt-PT">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>WMS Porta-Paletes — Gestão Visual de Armazém</title>
+    <meta
+      name="description"
+      content="Sistema de Gestão de Armazém (WMS) simplificado para controle visual de 150 posições porta-paletes, putaway, picking e rastreio de SKUs."
+    />
+    <meta property="og:title" content="WMS Porta-Paletes — Gestão Visual de Armazém" />
+    <meta
+      property="og:description"
+      content="Sistema de Gestão de Armazém (WMS) simplificado para controle visual de 150 posições porta-paletes, putaway, picking e rastreio de SKUs."
+    />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --bg-canvas: #f4f6f8;
+        --bg-surface: #ffffff;
+        --bg-subtle: #f8fafc;
+        --bg-muted: #f1f5f9;
+        --border-hairline: #e2e8f0;
+        --border-strong: #cbd5e1;
+
+        --text-primary: #0f172a;
+        --text-secondary: #475569;
+        --text-muted: #64748b;
+
+        --accent-primary: #0f172a;
+        --accent-primary-hover: #1e293b;
+        --accent-focus: #2563eb;
+
+        /* Semantic Rack States */
+        --free-bg: #ecfdf5;
+        --free-border: #86efac;
+        --free-accent: #16a34a;
+        --free-text: #166534;
+
+        --occ-bg: #eff6ff;
+        --occ-border: #93c5fd;
+        --occ-accent: #2563eb;
+        --occ-text: #1e40af;
+
+        --blk-bg: #f1f5f9;
+        --blk-border: #cbd5e1;
+        --blk-accent: #64748b;
+        --blk-text: #475569;
+
+        --match-ring: #d97706;
+        --danger: #dc2626;
+        --danger-bg: #fef2f2;
+        --danger-border: #fecaca;
+
+        --font-sans: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+
+        --radius-sm: 6px;
+        --radius-md: 8px;
+        --radius-lg: 12px;
+        --transition-fast: 150ms cubic-bezier(0.16, 1, 0.3, 1);
+      }
+
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      html,
+      body {
+        height: 100%;
+      }
+
+      body {
+        font-family: var(--font-sans);
+        background-color: var(--bg-canvas);
+        color: var(--text-primary);
+        font-size: 14px;
+        line-height: 1.5;
+        -webkit-font-smoothing: antialiased;
+        overflow-x: hidden;
+      }
+
+      button,
+      input,
+      select {
+        font-family: inherit;
+        font-size: inherit;
+        color: inherit;
+      }
+
+      button {
+        cursor: pointer;
+        border: none;
+        background: none;
+      }
+
+      :focus-visible {
+        outline: 2px solid var(--accent-focus);
+        outline-offset: 2px;
+      }
+
+      .mono {
+        font-family: var(--font-mono);
+        font-variant-numeric: tabular-nums;
+      }
+
+      .tabular {
+        font-variant-numeric: tabular-nums;
+      }
+
+      /* Top Header */
+      .topbar {
+        background-color: var(--bg-surface);
+        border-bottom: 1px solid var(--border-hairline);
+        position: sticky;
+        top: 0;
+        z-index: 30;
+      }
+
+      .topbar-inner {
+        max-width: 1480px;
+        margin: 0 auto;
+        padding: 12px 24px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 24px;
+        flex-wrap: wrap;
+      }
+
+      .brand {
+        font-size: 17px;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+        color: var(--text-primary);
+        white-space: nowrap;
+        flex-shrink: 0;
+      }
+
+      .topbar-actions {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-shrink: 0;
+      }
+
+      /* Buttons */
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 7px;
+        padding: 8px 14px;
+        min-height: 38px;
+        border-radius: var(--radius-md);
+        font-size: 13px;
+        font-weight: 600;
+        white-space: nowrap;
+        flex-shrink: 0;
+        transition: background-color var(--transition-fast), border-color var(--transition-fast), color var(--transition-fast), transform var(--transition-fast);
+      }
+
+      .btn:active {
+        transform: translateY(1px);
+      }
+
+      .btn-primary {
+        background-color: var(--accent-primary);
+        color: #ffffff;
+        border: 1px solid var(--accent-primary);
+      }
+
+      .btn-primary:hover {
+        background-color: var(--accent-primary-hover);
+      }
+
+      .btn-secondary {
+        background-color: var(--bg-surface);
+        color: var(--text-primary);
+        border: 1px solid var(--border-strong);
+      }
+
+      .btn-secondary:hover {
+        background-color: var(--bg-subtle);
+        border-color: #94a3b8;
+      }
+
+      .btn-danger-outline {
+        background-color: var(--bg-surface);
+        color: var(--danger);
+        border: 1px solid var(--danger-border);
+      }
+
+      .btn-danger-outline:hover {
+        background-color: var(--danger-bg);
+        border-color: #fca5a5;
+      }
+
+      .btn-danger-solid {
+        background-color: var(--danger);
+        color: #ffffff;
+        border: 1px solid var(--danger);
+      }
+
+      .btn-danger-solid:hover {
+        background-color: #b91c1c;
+      }
+
+      .btn-occ {
+        background-color: var(--occ-accent);
+        color: #ffffff;
+        border: 1px solid var(--occ-accent);
+      }
+
+      .btn-occ:hover {
+        background-color: #1d4ed8;
+      }
+
+      .btn-free {
+        background-color: var(--free-accent);
+        color: #ffffff;
+        border: 1px solid var(--free-accent);
+      }
+
+      .btn-free:hover {
+        background-color: #15803d;
+      }
+
+      .btn-sm {
+        padding: 6px 10px;
+        min-height: 32px;
+        font-size: 12px;
+      }
+
+      .btn:disabled {
+        opacity: 0.48;
+        cursor: not-allowed;
+        transform: none;
+      }
+
+      /* Main Page Container */
+      .container {
+        max-width: 1480px;
+        margin: 0 auto;
+        padding: 20px 24px 36px;
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+      }
+
+      /* KPI Dashboard Strip */
+      .kpi-grid {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 16px;
+      }
+
+      .kpi-card {
+        background-color: var(--bg-surface);
+        border: 1px solid var(--border-hairline);
+        border-radius: var(--radius-lg);
+        padding: 16px 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      .kpi-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+      }
+
+      .kpi-label {
+        font-size: 13px;
+        font-weight: 500;
+        color: var(--text-secondary);
+      }
+
+      .kpi-state-tag {
+        font-size: 11px;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+      }
+
+      .kpi-swatch {
+        width: 8px;
+        height: 8px;
+        border-radius: 2px;
+        display: inline-block;
+      }
+
+      .kpi-value-row {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 12px;
+      }
+
+      .kpi-value {
+        font-size: 28px;
+        font-weight: 700;
+        line-height: 1.1;
+        letter-spacing: -0.02em;
+        color: var(--text-primary);
+      }
+
+      .kpi-meta {
+        font-size: 12px;
+        color: var(--text-muted);
+      }
+
+      .progress-track {
+        width: 100%;
+        height: 6px;
+        background-color: var(--bg-muted);
+        border-radius: 999px;
+        overflow: hidden;
+        margin-top: 2px;
+      }
+
+      .progress-fill {
+        height: 100%;
+        background-color: var(--occ-accent);
+        transition: width 220ms cubic-bezier(0.16, 1, 0.3, 1);
+      }
+
+      /* Workspace Split Grid */
+      .workspace {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 390px;
+        gap: 20px;
+        align-items: start;
+      }
+
+      /* Map Panel */
+      .panel {
+        background-color: var(--bg-surface);
+        border: 1px solid var(--border-hairline);
+        border-radius: var(--radius-lg);
+      }
+
+      .map-toolbar {
+        padding: 16px 20px;
+        border-bottom: 1px solid var(--border-hairline);
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+      }
+
+      .toolbar-top {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        flex-wrap: wrap;
+      }
+
+      .section-title {
+        font-size: 16px;
+        font-weight: 700;
+        color: var(--text-primary);
+        letter-spacing: -0.01em;
+      }
+
+      .section-subtitle {
+        font-size: 12px;
+        color: var(--text-muted);
+        margin-top: 2px;
+      }
+
+      .legend {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        flex-wrap: wrap;
+        font-size: 12px;
+        color: var(--text-secondary);
+      }
+
+      .legend-item {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        white-space: nowrap;
+      }
+
+      .legend-box {
+        width: 14px;
+        height: 14px;
+        border-radius: 4px;
+        border: 1px solid transparent;
+        flex-shrink: 0;
+      }
+
+      .legend-box.free {
+        background-color: var(--free-bg);
+        border-color: var(--free-border);
+      }
+
+      .legend-box.occ {
+        background-color: var(--occ-bg);
+        border-color: var(--occ-border);
+      }
+
+      .legend-box.blk {
+        background: repeating-linear-gradient(
+          -45deg,
+          var(--blk-bg),
+          var(--blk-bg) 3px,
+          #e2e8f0 3px,
+          #e2e8f0 6px
+        );
+        border-color: var(--blk-border);
+      }
+
+      .legend-box.match {
+        background-color: #fffbeb;
+        border: 2px solid var(--match-ring);
+      }
+
+      .toolbar-controls {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        flex-wrap: wrap;
+      }
+
+      /* Search Input */
+      .search-box {
+        position: relative;
+        flex: 1 1 280px;
+        max-width: 440px;
+      }
+
+      .search-icon {
+        position: absolute;
+        left: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--text-muted);
+        pointer-events: none;
+        display: flex;
+      }
+
+      .search-input {
+        width: 100%;
+        height: 38px;
+        padding: 0 36px 0 36px;
+        border: 1px solid var(--border-strong);
+        border-radius: var(--radius-md);
+        background-color: var(--bg-subtle);
+        font-size: 13px;
+        transition: border-color var(--transition-fast), background-color var(--transition-fast);
+      }
+
+      .search-input:focus {
+        outline: none;
+        background-color: var(--bg-surface);
+        border-color: var(--accent-focus);
+      }
+
+      .search-clear {
+        position: absolute;
+        right: 8px;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 24px;
+        height: 24px;
+        border-radius: 4px;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        color: var(--text-muted);
+      }
+
+      .search-clear.visible {
+        display: flex;
+      }
+
+      .search-clear:hover {
+        background-color: var(--bg-muted);
+        color: var(--text-primary);
+      }
+
+      /* Filter Segmented Bar */
+      .filter-bar {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+
+      .segmented {
+        display: inline-flex;
+        align-items: center;
+        padding: 3px;
+        background-color: var(--bg-muted);
+        border-radius: var(--radius-md);
+        gap: 2px;
+      }
+
+      .seg-btn {
+        padding: 5px 10px;
+        border-radius: 5px;
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--text-secondary);
+        white-space: nowrap;
+        transition: background-color var(--transition-fast), color var(--transition-fast);
+      }
+
+      .seg-btn:hover {
+        color: var(--text-primary);
+      }
+
+      .seg-btn.active {
+        background-color: var(--bg-surface);
+        color: var(--text-primary);
+        box-shadow: 0 1px 2px rgba(15, 23, 42, 0.08);
+      }
+
+      .aisle-select {
+        height: 34px;
+        padding: 0 10px;
+        border-radius: var(--radius-md);
+        border: 1px solid var(--border-strong);
+        background-color: var(--bg-surface);
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--text-primary);
+      }
+
+      /* Search Results Strip */
+      .search-status-bar {
+        padding: 10px 20px;
+        background-color: #fffbeb;
+        border-bottom: 1px solid #fde68a;
+        display: none;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        flex-wrap: wrap;
+        font-size: 13px;
+        color: #92400e;
+      }
+
+      .search-status-bar.visible {
+        display: flex;
+      }
+
+      .search-matches-list {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        flex-wrap: wrap;
+      }
+
+      .match-jump-btn {
+        padding: 3px 8px;
+        background-color: #ffffff;
+        border: 1px solid #fcd34d;
+        border-radius: 5px;
+        font-family: var(--font-mono);
+        font-size: 11px;
+        font-weight: 600;
+        color: #92400e;
+        white-space: nowrap;
+      }
+
+      .match-jump-btn:hover {
+        background-color: #fef3c7;
+      }
+
+      /* Warehouse Map Grid (6 Aisles x 5 Modules x 5 Levels = 150 Slots) */
+      .warehouse-grid {
+        padding: 20px;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 18px;
+      }
+
+      .aisle-block {
+        border: 1px solid var(--border-hairline);
+        border-radius: var(--radius-md);
+        background-color: var(--bg-subtle);
+        padding: 12px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      .aisle-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        padding-bottom: 6px;
+        border-bottom: 1px solid var(--border-hairline);
+      }
+
+      .aisle-title {
+        font-size: 14px;
+        font-weight: 700;
+        color: var(--text-primary);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .aisle-stats {
+        font-size: 12px;
+        color: var(--text-muted);
+        white-space: nowrap;
+      }
+
+      .modules-row {
+        display: grid;
+        grid-template-columns: 32px repeat(5, minmax(0, 1fr));
+        gap: 6px;
+        align-items: stretch;
+      }
+
+      .level-axis {
+        display: grid;
+        grid-template-rows: 20px repeat(5, 44px);
+        gap: 5px;
+      }
+
+      .level-axis-spacer {
+        height: 20px;
+      }
+
+      .level-axis-label {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: var(--font-mono);
+        font-size: 10px;
+        font-weight: 600;
+        color: var(--text-muted);
+        user-select: none;
+      }
+
+      .module-col {
+        display: grid;
+        grid-template-rows: 20px repeat(5, 44px);
+        gap: 5px;
+        min-width: 0;
+      }
+
+      .module-label {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: var(--font-mono);
+        font-size: 11px;
+        font-weight: 700;
+        color: var(--text-secondary);
+        background-color: var(--bg-muted);
+        border-radius: 4px;
+      }
+
+      .slot-btn {
+        position: relative;
+        width: 100%;
+        height: 44px;
+        padding: 4px 5px;
+        border-radius: 5px;
+        border: 1px solid transparent;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        justify-content: space-between;
+        text-align: left;
+        overflow: hidden;
+        transition: transform var(--transition-fast), box-shadow var(--transition-fast), opacity var(--transition-fast), border-color var(--transition-fast);
+      }
+
+      .slot-btn:hover {
+        transform: translateY(-1px);
+        z-index: 2;
+      }
+
+      .slot-btn.state-livre {
+        background-color: var(--free-bg);
+        border-color: var(--free-border);
+        color: var(--free-text);
+      }
+
+      .slot-btn.state-livre:hover {
+        border-color: var(--free-accent);
+      }
+
+      .slot-btn.state-ocupado {
+        background-color: var(--occ-bg);
+        border-color: var(--occ-border);
+        color: var(--occ-text);
+      }
+
+      .slot-btn.state-ocupado:hover {
+        border-color: var(--occ-accent);
+      }
+
+      .slot-btn.state-indisponivel {
+        background: repeating-linear-gradient(
+          -45deg,
+          var(--blk-bg),
+          var(--blk-bg) 4px,
+          #e2e8f0 4px,
+          #e2e8f0 8px
+        );
+        border-color: var(--blk-border);
+        color: var(--blk-text);
+      }
+
+      .slot-btn.state-indisponivel:hover {
+        border-color: var(--blk-accent);
+      }
+
+      .slot-btn.selected {
+        box-shadow: 0 0 0 2px #ffffff, 0 0 0 4px var(--accent-primary);
+        z-index: 3;
+      }
+
+      .slot-btn.search-match {
+        box-shadow: 0 0 0 2px #ffffff, 0 0 0 4px var(--match-ring);
+        z-index: 4;
+      }
+
+      .slot-btn.selected.search-match {
+        box-shadow: 0 0 0 2px #ffffff, 0 0 0 4px var(--match-ring);
+      }
+
+      .slot-btn.dimmed {
+        opacity: 0.24;
+      }
+
+      .slot-btn.dimmed:hover {
+        opacity: 0.72;
+      }
+
+      .slot-top {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 3px;
+        font-family: var(--font-mono);
+        font-size: 9.5px;
+        font-weight: 700;
+        line-height: 1;
+      }
+
+      .slot-qty {
+        font-size: 9.5px;
+        font-weight: 700;
+        opacity: 0.9;
+      }
+
+      .slot-sub {
+        width: 100%;
+        font-size: 10px;
+        font-weight: 600;
+        line-height: 1.15;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      /* Right Operations Sidebar */
+      .sidebar {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        position: sticky;
+        top: 76px;
+      }
+
+      .inspector-card {
+        padding: 18px 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+      }
+
+      .inspector-empty {
+        padding: 12px 0 4px;
+        font-size: 13px;
+        color: var(--text-secondary);
+      }
+
+      .address-display {
+        font-family: var(--font-mono);
+        font-size: 13px;
+        font-weight: 700;
+        color: var(--text-primary);
+        background-color: var(--bg-subtle);
+        border: 1px solid var(--border-hairline);
+        border-radius: var(--radius-md);
+        padding: 10px 12px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+      }
+
+      .status-text {
+        font-family: var(--font-sans);
+        font-size: 12px;
+        font-weight: 700;
+      }
+
+      .status-text.livre {
+        color: var(--free-accent);
+      }
+
+      .status-text.ocupado {
+        color: var(--occ-accent);
+      }
+
+      .status-text.indisponivel {
+        color: var(--blk-accent);
+      }
+
+      .detail-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px 14px;
+        padding-top: 4px;
+      }
+
+      .detail-item {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+      }
+
+      .detail-item.full {
+        grid-column: 1 / -1;
+      }
+
+      .detail-label {
+        font-size: 11px;
+        font-weight: 500;
+        color: var(--text-muted);
+      }
+
+      .detail-val {
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--text-primary);
+        word-break: break-word;
+      }
+
+      /* Operation Tabs (Putaway / Picking) */
+      .op-tabs {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        border-bottom: 1px solid var(--border-hairline);
+      }
+
+      .op-tab {
+        padding: 13px 16px;
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--text-secondary);
+        border-bottom: 2px solid transparent;
+        text-align: center;
+        white-space: nowrap;
+        transition: color var(--transition-fast), border-color var(--transition-fast), background-color var(--transition-fast);
+      }
+
+      .op-tab:hover {
+        color: var(--text-primary);
+        background-color: var(--bg-subtle);
+      }
+
+      .op-tab.active {
+        color: var(--text-primary);
+        border-bottom-color: var(--accent-primary);
+      }
+
+      .op-body {
+        padding: 18px 20px 20px;
+      }
+
+      .form-stack {
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+      }
+
+      .form-group {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+      }
+
+      .form-label {
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--text-secondary);
+      }
+
+      .form-control {
+        width: 100%;
+        height: 38px;
+        padding: 0 12px;
+        border: 1px solid var(--border-strong);
+        border-radius: var(--radius-md);
+        background-color: var(--bg-surface);
+        font-size: 13px;
+        transition: border-color var(--transition-fast);
+      }
+
+      .form-control:focus {
+        outline: none;
+        border-color: var(--accent-focus);
+      }
+
+      .form-hint {
+        font-size: 11px;
+        color: var(--text-muted);
+      }
+
+      .quick-qty-row {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        flex-wrap: wrap;
+        margin-top: 4px;
+      }
+
+      .quick-qty-btn {
+        padding: 4px 9px;
+        border-radius: 5px;
+        border: 1px solid var(--border-strong);
+        background-color: var(--bg-subtle);
+        font-size: 11px;
+        font-weight: 600;
+        color: var(--text-secondary);
+      }
+
+      .quick-qty-btn:hover {
+        background-color: var(--bg-muted);
+        color: var(--text-primary);
+      }
+
+      .form-actions {
+        display: flex;
+        gap: 8px;
+        margin-top: 4px;
+      }
+
+      .form-actions .btn {
+        flex: 1;
+      }
+
+      .picking-preview {
+        background-color: var(--bg-subtle);
+        border: 1px solid var(--border-hairline);
+        border-radius: var(--radius-md);
+        padding: 10px 12px;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        font-size: 12px;
+      }
+
+      .picking-preview-row {
+        display: flex;
+        justify-content: space-between;
+        gap: 8px;
+      }
+
+      /* Occupied Inventory Quick Table (bottom of map panel for scannability) */
+      .inventory-table-wrap {
+        border-top: 1px solid var(--border-hairline);
+        padding: 16px 20px;
+      }
+
+      .inventory-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 12px;
+      }
+
+      .table-scroll {
+        overflow-x: auto;
+        max-height: 270px;
+        overflow-y: auto;
+        border: 1px solid var(--border-hairline);
+        border-radius: var(--radius-md);
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 13px;
+      }
+
+      th {
+        position: sticky;
+        top: 0;
+        background-color: var(--bg-subtle);
+        text-align: left;
+        padding: 9px 12px;
+        font-size: 11px;
+        font-weight: 600;
+        color: var(--text-secondary);
+        border-bottom: 1px solid var(--border-hairline);
+        white-space: nowrap;
+      }
+
+      th.num,
+      td.num {
+        text-align: right;
+      }
+
+      td {
+        padding: 9px 12px;
+        border-bottom: 1px solid var(--border-hairline);
+        color: var(--text-primary);
+      }
+
+      tr:last-child td {
+        border-bottom: none;
+      }
+
+      tbody tr {
+        cursor: pointer;
+        transition: background-color var(--transition-fast);
+      }
+
+      tbody tr:hover {
+        background-color: var(--bg-subtle);
+      }
+
+      tbody tr.active-row {
+        background-color: var(--occ-bg);
+      }
+
+      .empty-table-msg {
+        padding: 24px 16px;
+        text-align: center;
+        color: var(--text-muted);
+        font-size: 13px;
+      }
+
+      /* Inline Confirm Bar for Clear Warehouse */
+      .confirm-clear-wrap {
+        display: none;
+        align-items: center;
+        gap: 6px;
+      }
+
+      .confirm-clear-wrap.visible {
+        display: inline-flex;
+      }
+
+      /* Toast Notification */
+      .toast-region {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        z-index: 50;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        max-width: 380px;
+        pointer-events: none;
+      }
+
+      .toast {
+        pointer-events: auto;
+        background-color: var(--text-primary);
+        color: #ffffff;
+        padding: 11px 14px;
+        border-radius: var(--radius-md);
+        font-size: 13px;
+        font-weight: 500;
+        box-shadow: 0 10px 25px rgba(15, 23, 42, 0.2);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        animation: toast-in 180ms cubic-bezier(0.16, 1, 0.3, 1);
+      }
+
+      .toast.error {
+        background-color: #991b1b;
+      }
+
+      .toast.success {
+        background-color: #0f172a;
+      }
+
+      @keyframes toast-in {
+        from {
+          opacity: 0;
+          transform: translateY(8px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+          transition-duration: 0.01ms !important;
+          animation-duration: 0.01ms !important;
+        }
+      }
+
+      /* Responsive Breakpoints */
+      @media (max-width: 1180px) {
+        .workspace {
+          grid-template-columns: 1fr;
+        }
+
+        .sidebar {
+          position: static;
+        }
+      }
+
+      @media (max-width: 900px) {
+        .kpi-grid {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .warehouse-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      @media (max-width: 600px) {
+        .topbar-inner,
+        .container {
+          padding-left: 16px;
+          padding-right: 16px;
+        }
+
+        .kpi-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .slot-btn {
+          min-height: 44px;
+        }
+
+        .btn {
+          min-height: 42px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="topbar-inner">
+        <div class="brand">Atlas WMS · Controle de Porta-Paletes</div>
+        <div class="topbar-actions">
+          <button type="button" id="btn-seed" class="btn btn-secondary">
+            Popular Dados de Exemplo
+          </button>
+          <button type="button" id="btn-clear-trigger" class="btn btn-danger-outline">
+            Limpar Armazém
+          </button>
+          <div id="confirm-clear-wrap" class="confirm-clear-wrap" role="group" aria-label="Confirmar limpeza do armazém">
+            <button type="button" id="btn-clear-confirm" class="btn btn-danger-solid">
+              Confirmar Limpeza
+            </button>
+            <button type="button" id="btn-clear-cancel" class="btn btn-secondary">
+              Cancelar
+            </button>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main class="container">
+      <!-- Painel de Indicadores (Dashboard) -->
+      <section class="kpi-grid" aria-label="Indicadores do Armazém">
+        <article class="kpi-card">
+          <div class="kpi-header">
+            <span class="kpi-label">Taxa de Ocupação</span>
+            <span class="kpi-state-tag mono" id="kpi-capacity-ratio">0 / 150</span>
+          </div>
+          <div class="kpi-value-row">
+            <span class="kpi-value mono" id="kpi-occupancy-pct">0.0%</span>
+            <span class="kpi-meta tabular" id="kpi-total-units">0 un. em estoque</span>
+          </div>
+          <div class="progress-track" aria-hidden="true">
+            <div class="progress-fill" id="kpi-occupancy-bar" style="width: 0%"></div>
+          </div>
+        </article>
+
+        <article class="kpi-card">
+          <div class="kpi-header">
+            <span class="kpi-label">Posições Livres</span>
+            <span class="kpi-state-tag" style="color: var(--free-text)">
+              <span class="kpi-swatch" style="background: var(--free-accent)"></span>
+              Disponível
+            </span>
+          </div>
+          <div class="kpi-value-row">
+            <span class="kpi-value mono" id="kpi-free-count">150</span>
+            <span class="kpi-meta tabular" id="kpi-free-pct">100.0% do total</span>
+          </div>
+        </article>
+
+        <article class="kpi-card">
+          <div class="kpi-header">
+            <span class="kpi-label">Posições Ocupadas</span>
+            <span class="kpi-state-tag" style="color: var(--occ-text)">
+              <span class="kpi-swatch" style="background: var(--occ-accent)"></span>
+              Alocado
+            </span>
+          </div>
+          <div class="kpi-value-row">
+            <span class="kpi-value mono" id="kpi-occ-count">0</span>
+            <span class="kpi-meta tabular" id="kpi-sku-count">0 SKUs distintos</span>
+          </div>
+        </article>
+
+        <article class="kpi-card">
+          <div class="kpi-header">
+            <span class="kpi-label">Posições Indisponíveis</span>
+            <span class="kpi-state-tag" style="color: var(--blk-text)">
+              <span class="kpi-swatch" style="background: var(--blk-accent)"></span>
+              Bloqueado
+            </span>
+          </div>
+          <div class="kpi-value-row">
+            <span class="kpi-value mono" id="kpi-blk-count">0</span>
+            <span class="kpi-meta tabular" id="kpi-blk-pct">0.0% em manutenção</span>
+          </div>
+        </article>
+      </section>
+
+      <!-- Área Principal: Mapa Interativo + Painel Operacional -->
+      <section class="workspace">
+        <!-- Mapa Visual Interativo -->
+        <div class="panel">
+          <div class="map-toolbar">
+            <div class="toolbar-top">
+              <div>
+                <h1 class="section-title">Mapa Visual de Porta-Paletes (150 Posições)</h1>
+                <p class="section-subtitle">
+                  6 Ruas (A–F) · 5 Módulos por rua (P01–P05) · 5 Níveis (N5 Topo até N1 Piso)
+                </p>
+              </div>
+              <div class="legend" aria-label="Legenda de estados">
+                <span class="legend-item">
+                  <span class="legend-box free"></span>
+                  Livre
+                </span>
+                <span class="legend-item">
+                  <span class="legend-box occ"></span>
+                  Ocupado
+                </span>
+                <span class="legend-item">
+                  <span class="legend-box blk"></span>
+                  Indisponível
+                </span>
+                <span class="legend-item">
+                  <span class="legend-box match"></span>
+                  Correspondência de Busca
+                </span>
+              </div>
+            </div>
+
+            <div class="toolbar-controls">
+              <div class="search-box">
+                <span class="search-icon" aria-hidden="true">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                  </svg>
+                </span>
+                <input
+                  type="text"
+                  id="search-input"
+                  class="search-input"
+                  placeholder="Buscar por SKU, nome do produto ou endereço (ex: RUA-A)..."
+                  aria-label="Buscar por SKU, nome do produto ou endereço"
+                />
+                <button
+                  type="button"
+                  id="search-clear"
+                  class="search-clear"
+                  aria-label="Limpar busca"
+                  title="Limpar busca"
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                  </svg>
+                </button>
+              </div>
+
+              <div class="filter-bar">
+                <div class="segmented" role="group" aria-label="Filtrar por estado">
+                  <button type="button" class="seg-btn active" data-state-filter="ALL">Todos</button>
+                  <button type="button" class="seg-btn" data-state-filter="LIVRE">Livres</button>
+                  <button type="button" class="seg-btn" data-state-filter="OCUPADO">Ocupados</button>
+                  <button type="button" class="seg-btn" data-state-filter="INDISPONIVEL">Indisponíveis</button>
+                </div>
+
+                <select id="aisle-filter" class="aisle-select" aria-label="Filtrar por rua">
+                  <option value="ALL">Todas as Ruas (A–F)</option>
+                  <option value="A">Rua A</option>
+                  <option value="B">Rua B</option>
+                  <option value="C">Rua C</option>
+                  <option value="D">Rua D</option>
+                  <option value="E">Rua E</option>
+                  <option value="F">Rua F</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <!-- Barra de resultados da busca -->
+          <div id="search-status-bar" class="search-status-bar" aria-live="polite">
+            <span id="search-status-text">0 posições encontradas</span>
+            <div id="search-matches-list" class="search-matches-list"></div>
+          </div>
+
+          <!-- Grelha das 6 Ruas -->
+          <div id="warehouse-grid" class="warehouse-grid"></div>
+
+          <!-- Tabela rápida de posições ocupadas / filtradas -->
+          <div class="inventory-table-wrap">
+            <div class="inventory-header">
+              <div>
+                <h2 class="section-title" style="font-size: 14px">Posições Ocupadas em Estoque</h2>
+                <p class="section-subtitle" id="table-count-label">0 posições ocupadas</p>
+              </div>
+            </div>
+            <div class="table-scroll">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Endereço</th>
+                    <th>Código / SKU</th>
+                    <th>Produto</th>
+                    <th class="num">Qtd.</th>
+                    <th>Entrada</th>
+                  </tr>
+                </thead>
+                <tbody id="inventory-tbody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Painel Lateral de Inspeção e Operações -->
+        <aside class="sidebar" aria-label="Operações de Armazém">
+          <!-- Inspetor da Posição Selecionada -->
+          <div class="panel inspector-card" id="inspector-panel">
+            <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px">
+              <h2 class="section-title">Detalhes da Posição</h2>
+              <button type="button" id="btn-clear-selection" class="btn btn-secondary btn-sm" style="display: none">
+                Desselecionar
+              </button>
+            </div>
+            <div id="inspector-content" class="inspector-empty">
+              Clique em qualquer uma das 150 posições no mapa para inspecionar detalhes, preencher operações ou bloquear para manutenção.
+            </div>
+          </div>
+
+          <!-- Operações: Entrada (Putaway) e Saída (Picking) -->
+          <div class="panel">
+            <div class="op-tabs" role="tablist" aria-label="Operações de Movimentação">
+              <button
+                type="button"
+                role="tab"
+                id="tab-putaway"
+                class="op-tab active"
+                aria-selected="true"
+                aria-controls="panel-putaway"
+              >
+                Entrada (Putaway)
+              </button>
+              <button
+                type="button"
+                role="tab"
+                id="tab-picking"
+                class="op-tab"
+                aria-selected="false"
+                aria-controls="panel-picking"
+              >
+                Saída (Picking)
+              </button>
+            </div>
+
+            <div class="op-body">
+              <!-- Formulário Putaway -->
+              <form id="form-putaway" class="form-stack" novalidate>
+                <div class="form-group">
+                  <label class="form-label" for="putaway-address">Endereço Disponível (Livres)</label>
+                  <select id="putaway-address" class="form-control mono" required></select>
+                  <span class="form-hint" id="putaway-free-hint">Selecione uma posição livre ou clique no mapa.</span>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label" for="putaway-sku">Código / SKU</label>
+                  <input
+                    type="text"
+                    id="putaway-sku"
+                    class="form-control mono"
+                    placeholder="Ex: SKU-4092"
+                    maxlength="32"
+                    required
+                  />
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label" for="putaway-product">Nome do Produto</label>
+                  <input
+                    type="text"
+                    id="putaway-product"
+                    class="form-control"
+                    placeholder="Ex: Palete Bomba Hidráulica 5HP"
+                    maxlength="80"
+                    required
+                  />
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label" for="putaway-qty">Quantidade</label>
+                  <input
+                    type="number"
+                    id="putaway-qty"
+                    class="form-control mono"
+                    min="1"
+                    step="1"
+                    value="10"
+                    required
+                  />
+                </div>
+
+                <div class="form-actions">
+                  <button type="submit" id="btn-putaway-submit" class="btn btn-free">
+                    Confirmar Entrada
+                  </button>
+                </div>
+              </form>
+
+              <!-- Formulário Picking -->
+              <form id="form-picking" class="form-stack" style="display: none" novalidate>
+                <div class="form-group">
+                  <label class="form-label" for="picking-address">Endereço Ocupado</label>
+                  <select id="picking-address" class="form-control mono" required></select>
+                </div>
+
+                <div id="picking-preview" class="picking-preview" style="display: none">
+                  <div class="picking-preview-row">
+                    <span style="color: var(--text-muted)">SKU:</span>
+                    <strong class="mono" id="pick-prev-sku">-</strong>
+                  </div>
+                  <div class="picking-preview-row">
+                    <span style="color: var(--text-muted)">Produto:</span>
+                    <strong id="pick-prev-product" style="text-align: right">-</strong>
+                  </div>
+                  <div class="picking-preview-row">
+                    <span style="color: var(--text-muted)">Disponível:</span>
+                    <strong class="mono" id="pick-prev-qty">0</strong>
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label" for="picking-qty">Quantidade para Saída</label>
+                  <input
+                    type="number"
+                    id="picking-qty"
+                    class="form-control mono"
+                    min="1"
+                    step="1"
+                    value="1"
+                    required
+                  />
+                  <div class="quick-qty-row">
+                    <button type="button" class="quick-qty-btn" data-pick-preset="1">1 un.</button>
+                    <button type="button" class="quick-qty-btn" data-pick-preset="half">Metade</button>
+                    <button type="button" class="quick-qty-btn" data-pick-preset="all">Tudo (Total)</button>
+                  </div>
+                </div>
+
+                <div class="form-actions">
+                  <button type="submit" id="btn-picking-partial" class="btn btn-occ">
+                    Dar Baixa Parcial
+                  </button>
+                  <button type="button" id="btn-picking-total" class="btn btn-primary">
+                    Baixa Total
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </aside>
+      </section>
+    </main>
+
+    <div id="toast-region" class="toast-region" aria-live="polite" aria-atomic="true"></div>
+
+    <script>
+      (function () {
+        "use strict";
+
+        const STORAGE_KEY = "atlas_wms_positions_v1";
+        const AISLES = ["A", "B", "C", "D", "E", "F"];
+        const MODULES = ["P01", "P02", "P03", "P04", "P05"];
+        const LEVELS = [5, 4, 3, 2, 1]; // N5 = Topo até N1 = Piso
+        const TOTAL_SLOTS = 150;
+
+        // Estado em memória
+        let warehouse = [];
+        let selectedAddress = null;
+        let activeTab = "putaway"; // 'putaway' | 'picking'
+        let searchQuery = "";
+        let stateFilter = "ALL"; // 'ALL' | 'LIVRE' | 'OCUPADO' | 'INDISPONIVEL'
+        let aisleFilter = "ALL";
+        let clearConfirmTimer = null;
+
+        // Referências DOM
+        const el = {
+          kpiOccupancyPct: document.getElementById("kpi-occupancy-pct"),
+          kpiOccupancyBar: document.getElementById("kpi-occupancy-bar"),
+          kpiCapacityRatio: document.getElementById("kpi-capacity-ratio"),
+          kpiTotalUnits: document.getElementById("kpi-total-units"),
+          kpiFreeCount: document.getElementById("kpi-free-count"),
+          kpiFreePct: document.getElementById("kpi-free-pct"),
+          kpiOccCount: document.getElementById("kpi-occ-count"),
+          kpiSkuCount: document.getElementById("kpi-sku-count"),
+          kpiBlkCount: document.getElementById("kpi-blk-count"),
+          kpiBlkPct: document.getElementById("kpi-blk-pct"),
+
+          searchInput: document.getElementById("search-input"),
+          searchClear: document.getElementById("search-clear"),
+          searchStatusBar: document.getElementById("search-status-bar"),
+          searchStatusText: document.getElementById("search-status-text"),
+          searchMatchesList: document.getElementById("search-matches-list"),
+          aisleFilter: document.getElementById("aisle-filter"),
+          filterButtons: document.querySelectorAll("[data-state-filter]"),
+
+          warehouseGrid: document.getElementById("warehouse-grid"),
+          inventoryTbody: document.getElementById("inventory-tbody"),
+          tableCountLabel: document.getElementById("table-count-label"),
+
+          inspectorContent: document.getElementById("inspector-content"),
+          btnClearSelection: document.getElementById("btn-clear-selection"),
+
+          tabPutaway: document.getElementById("tab-putaway"),
+          tabPicking: document.getElementById("tab-picking"),
+          formPutaway: document.getElementById("form-putaway"),
+          formPicking: document.getElementById("form-picking"),
+
+          putawayAddress: document.getElementById("putaway-address"),
+          putawayFreeHint: document.getElementById("putaway-free-hint"),
+          putawaySku: document.getElementById("putaway-sku"),
+          putawayProduct: document.getElementById("putaway-product"),
+          putawayQty: document.getElementById("putaway-qty"),
+          btnPutawaySubmit: document.getElementById("btn-putaway-submit"),
+
+          pickingAddress: document.getElementById("picking-address"),
+          pickingPreview: document.getElementById("picking-preview"),
+          pickPrevSku: document.getElementById("pick-prev-sku"),
+          pickPrevProduct: document.getElementById("pick-prev-product"),
+          pickPrevQty: document.getElementById("pick-prev-qty"),
+          pickingQty: document.getElementById("picking-qty"),
+          btnPickingPartial: document.getElementById("btn-picking-partial"),
+          btnPickingTotal: document.getElementById("btn-picking-total"),
+
+          btnSeed: document.getElementById("btn-seed"),
+          btnClearTrigger: document.getElementById("btn-clear-trigger"),
+          confirmClearWrap: document.getElementById("confirm-clear-wrap"),
+          btnClearConfirm: document.getElementById("btn-clear-confirm"),
+          btnClearCancel: document.getElementById("btn-clear-cancel"),
+
+          toastRegion: document.getElementById("toast-region"),
+        };
+
+        function formatAddress(aisle, mod, level) {
+          return "RUA-" + aisle + " / MOD-" + mod + " / NIVEL-" + level;
+        }
+
+        function createEmptyWarehouse() {
+          const list = [];
+          for (const aisle of AISLES) {
+            for (const mod of MODULES) {
+              for (const level of [1, 2, 3, 4, 5]) {
+                list.push({
+                  address: formatAddress(aisle, mod, level),
+                  aisle: aisle,
+                  module: mod,
+                  level: level,
+                  status: "LIVRE", // 'LIVRE' | 'OCUPADO' | 'INDISPONIVEL'
+                  sku: "",
+                  product: "",
+                  qty: 0,
+                  updatedAt: null,
+                });
+              }
+            }
+          }
+          return list;
+        }
+
+        function saveWarehouse() {
+          try {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(warehouse));
+          } catch (err) {
+            showToast("Não foi possível salvar no armazenamento local.", "error");
+          }
+        }
+
+        function loadWarehouse() {
+          try {
+            const raw = localStorage.getItem(STORAGE_KEY);
+            if (!raw) {
+              warehouse = createEmptyWarehouse();
+              saveWarehouse();
+              return;
+            }
+            const parsed = JSON.parse(raw);
+            if (Array.isArray(parsed) && parsed.length === TOTAL_SLOTS) {
+              warehouse = parsed;
+            } else {
+              warehouse = createEmptyWarehouse();
+              saveWarehouse();
+            }
+          } catch (err) {
+            warehouse = createEmptyWarehouse();
+            saveWarehouse();
+          }
+        }
+
+        function getSlot(address) {
+          return warehouse.find((s) => s.address === address) || null;
+        }
+
+        function escapeHtml(str) {
+          return String(str)
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#39;");
+        }
+
+        function formatTime(iso) {
+          if (!iso) return "-";
+          try {
+            const d = new Date(iso);
+            return d.toLocaleString("pt-PT", {
+              day: "2-digit",
+              month: "2-digit",
+              hour: "2-digit",
+              minute: "2-digit",
+            });
+          } catch (e) {
+            return "-";
+          }
+        }
+
+        function showToast(message, type) {
+          const toast = document.createElement("div");
+          toast.className = "toast " + (type || "success");
+          const msgSpan = document.createElement("span");
+          msgSpan.textContent = message;
+          toast.appendChild(msgSpan);
+          el.toastRegion.appendChild(toast);
+
+          setTimeout(function () {
+            toast.style.opacity = "0";
+            toast.style.transform = "translateY(6px)";
+            toast.style.transition = "opacity 160ms ease, transform 160ms ease";
+            setTimeout(function () {
+              if (toast.parentNode) {
+                toast.parentNode.removeChild(toast);
+              }
+            }, 180);
+          }, 3200);
+        }
+
+        function getSearchMatches() {
+          const q = searchQuery.trim().toLowerCase();
+          if (!q) return new Set();
+          const matches = new Set();
+          for (const slot of warehouse) {
+            const inAddr = slot.address.toLowerCase().includes(q);
+            const inSku = slot.status === "OCUPADO" && slot.sku.toLowerCase().includes(q);
+            const inProd = slot.status === "OCUPADO" && slot.product.toLowerCase().includes(q);
+            if (inAddr || inSku || inProd) {
+              matches.add(slot.address);
+            }
+          }
+          return matches;
+        }
+
+        function renderDashboard() {
+          let free = 0;
+          let occ = 0;
+          let blk = 0;
+          let totalUnits = 0;
+          const distinctSkus = new Set();
+
+          for (const s of warehouse) {
+            if (s.status === "LIVRE") free++;
+            else if (s.status === "OCUPADO") {
+              occ++;
+              totalUnits += Number(s.qty) || 0;
+              if (s.sku) distinctSkus.add(s.sku.toUpperCase());
+            } else {
+              blk++;
+            }
+          }
+
+          const occPct = (occ / TOTAL_SLOTS) * 100;
+          const freePct = (free / TOTAL_SLOTS) * 100;
+          const blkPct = (blk / TOTAL_SLOTS) * 100;
+
+          el.kpiOccupancyPct.textContent = occPct.toFixed(1) + "%";
+          el.kpiOccupancyBar.style.width = occPct.toFixed(1) + "%";
+          el.kpiCapacityRatio.textContent = occ + " / " + TOTAL_SLOTS;
+          el.kpiTotalUnits.textContent = totalUnits.toLocaleString("pt-PT") + " un. em estoque";
+
+          el.kpiFreeCount.textContent = String(free);
+          el.kpiFreePct.textContent = freePct.toFixed(1) + "% do total";
+
+          el.kpiOccCount.textContent = String(occ);
+          el.kpiSkuCount.textContent =
+            distinctSkus.size + (distinctSkus.size === 1 ? " SKU distinto" : " SKUs distintos");
+
+          el.kpiBlkCount.textContent = String(blk);
+          el.kpiBlkPct.textContent = blkPct.toFixed(1) + "% em manutenção";
+        }
+
+        function renderMap() {
+          const matches = getSearchMatches();
+          const hasSearch = searchQuery.trim().length > 0;
+          const hasStateFilter = stateFilter !== "ALL";
+
+          // Search status bar
+          if (hasSearch) {
+            el.searchStatusBar.classList.add("visible");
+            const count = matches.size;
+            el.searchStatusText.textContent =
+              count === 0
+                ? 'Nenhuma posição encontrada para "' + searchQuery.trim() + '".'
+                : count +
+                  (count === 1 ? " posição encontrada" : " posições encontradas") +
+                  ' para "' +
+                  searchQuery.trim() +
+                  '"';
+
+            el.searchMatchesList.innerHTML = "";
+            let shown = 0;
+            matches.forEach(function (addr) {
+              if (shown >= 6) return;
+              const btn = document.createElement("button");
+              btn.type = "button";
+              btn.className = "match-jump-btn";
+              btn.textContent = addr.replace(" / MOD-", "·").replace(" / NIVEL-", "·N");
+              btn.title = "Selecionar " + addr;
+              btn.addEventListener("click", function () {
+                selectSlot(addr);
+              });
+              el.searchMatchesList.appendChild(btn);
+              shown++;
+            });
+            if (matches.size > 6) {
+              const more = document.createElement("span");
+              more.style.fontSize = "12px";
+              more.style.fontWeight = "600";
+              more.textContent = "+" + (matches.size - 6) + " mais";
+              el.searchMatchesList.appendChild(more);
+            }
+          } else {
+            el.searchStatusBar.classList.remove("visible");
+            el.searchMatchesList.innerHTML = "";
+          }
+
+          const visibleAisles = aisleFilter === "ALL" ? AISLES : [aisleFilter];
+          const frag = document.createDocumentFragment();
+
+          for (const aisle of visibleAisles) {
+            const aisleSlots = warehouse.filter((s) => s.aisle === aisle);
+            const aisleFree = aisleSlots.filter((s) => s.status === "LIVRE").length;
+            const aisleOcc = aisleSlots.filter((s) => s.status === "OCUPADO").length;
+
+            const aisleEl = document.createElement("div");
+            aisleEl.className = "aisle-block";
+
+            const headerEl = document.createElement("div");
+            headerEl.className = "aisle-header";
+            headerEl.innerHTML =
+              '<div class="aisle-title">Rua ' +
+              aisle +
+              '</div><div class="aisle-stats mono">' +
+              aisleOcc +
+              " ocup. · " +
+              aisleFree +
+              " liv.</div>";
+            aisleEl.appendChild(headerEl);
+
+            const modulesRow = document.createElement("div");
+            modulesRow.className = "modules-row";
+
+            // Axis N5..N1
+            const axisCol = document.createElement("div");
+            axisCol.className = "level-axis";
+            const spacer = document.createElement("div");
+            spacer.className = "level-axis-spacer";
+            axisCol.appendChild(spacer);
+            for (const lvl of LEVELS) {
+              const lbl = document.createElement("div");
+              lbl.className = "level-axis-label";
+              lbl.textContent = "N" + lvl;
+              lbl.title = lvl === 5 ? "Nível 5 (Topo)" : lvl === 1 ? "Nível 1 (Piso)" : "Nível " + lvl;
+              axisCol.appendChild(lbl);
+            }
+            modulesRow.appendChild(axisCol);
+
+            // 5 Modules P01..P05
+            for (const mod of MODULES) {
+              const modCol = document.createElement("div");
+              modCol.className = "module-col";
+
+              const modLabel = document.createElement("div");
+              modLabel.className = "module-label";
+              modLabel.textContent = mod;
+              modCol.appendChild(modLabel);
+
+              for (const lvl of LEVELS) {
+                const addr = formatAddress(aisle, mod, lvl);
+                const slot = getSlot(addr);
+                const btn = document.createElement("button");
+                btn.type = "button";
+                btn.dataset.address = addr;
+
+                let stateClass = "state-livre";
+                if (slot.status === "OCUPADO") stateClass = "state-ocupado";
+                else if (slot.status === "INDISPONIVEL") stateClass = "state-indisponivel";
+
+                const isSelected = selectedAddress === addr;
+                const isMatch = hasSearch && matches.has(addr);
+                const matchesState = !hasStateFilter || slot.status === stateFilter;
+
+                const shouldDim = (hasSearch && !isMatch) || (hasStateFilter && !matchesState);
+
+                btn.className =
+                  "slot-btn " +
+                  stateClass +
+                  (isSelected ? " selected" : "") +
+                  (isMatch ? " search-match" : "") +
+                  (shouldDim ? " dimmed" : "");
+
+                if (slot.status === "LIVRE") {
+                  btn.title = addr + " — Livre";
+                  btn.innerHTML =
+                    '<div class="slot-top"><span>N' +
+                    lvl +
+                    '</span></div><div class="slot-sub">Livre</div>';
+                } else if (slot.status === "OCUPADO") {
+                  btn.title = addr + " — " + slot.sku + " · " + slot.product + " (" + slot.qty + " un.)";
+                  btn.innerHTML =
+                    '<div class="slot-top"><span>' +
+                    escapeHtml(slot.sku) +
+                    '</span><span class="slot-qty">' +
+                    slot.qty +
+                    '</span></div><div class="slot-sub">' +
+                    escapeHtml(slot.product) +
+                    "</div>";
+                } else {
+                  btn.title = addr + " — Indisponível (Manutenção)";
+                  btn.innerHTML =
+                    '<div class="slot-top"><span>N' +
+                    lvl +
+                    '</span></div><div class="slot-sub">Bloq.</div>';
+                }
+
+                btn.addEventListener("click", function () {
+                  selectSlot(addr);
+                });
+
+                modCol.appendChild(btn);
+              }
+
+              modulesRow.appendChild(modCol);
+            }
+
+            aisleEl.appendChild(modulesRow);
+            frag.appendChild(aisleEl);
+          }
+
+          el.warehouseGrid.innerHTML = "";
+          el.warehouseGrid.appendChild(frag);
+        }
+
+        function renderInventoryTable() {
+          const matches = getSearchMatches();
+          const hasSearch = searchQuery.trim().length > 0;
+          const occupied = warehouse.filter((s) => {
+            if (s.status !== "OCUPADO") return false;
+            if (aisleFilter !== "ALL" && s.aisle !== aisleFilter) return false;
+            if (hasSearch && !matches.has(s.address)) return false;
+            return true;
+          });
+
+          el.tableCountLabel.textContent =
+            occupied.length +
+            (occupied.length === 1 ? " posição ocupada exibida" : " posições ocupadas exibidas");
+
+          if (occupied.length === 0) {
+            el.inventoryTbody.innerHTML =
+              '<tr><td colspan="5" class="empty-table-msg">Nenhuma posição ocupada corresponde aos critérios atuais.</td></tr>';
+            return;
+          }
+
+          const frag = document.createDocumentFragment();
+          for (const slot of occupied) {
+            const tr = document.createElement("tr");
+            if (selectedAddress === slot.address) {
+              tr.className = "active-row";
+            }
+            tr.innerHTML =
+              '<td class="mono" style="white-space:nowrap;font-weight:600">' +
+              escapeHtml(slot.address) +
+              "</td>" +
+              '<td class="mono" style="white-space:nowrap">' +
+              escapeHtml(slot.sku) +
+              "</td>" +
+              "<td>" +
+              escapeHtml(slot.product) +
+              "</td>" +
+              '<td class="num mono" style="font-weight:700">' +
+              slot.qty +
+              "</td>" +
+              '<td class="tabular" style="white-space:nowrap;color:var(--text-muted);font-size:12px">' +
+              escapeHtml(formatTime(slot.updatedAt)) +
+              "</td>";
+
+            tr.addEventListener("click", function () {
+              selectSlot(slot.address);
+            });
+            frag.appendChild(tr);
+          }
+
+          el.inventoryTbody.innerHTML = "";
+          el.inventoryTbody.appendChild(frag);
+        }
+
+        function renderInspector() {
+          if (!selectedAddress) {
+            el.btnClearSelection.style.display = "none";
+            el.inspectorContent.className = "inspector-empty";
+            el.inspectorContent.textContent =
+              "Clique em qualquer uma das 150 posições no mapa para inspecionar detalhes, preencher operações ou bloquear para manutenção.";
+            return;
+          }
+
+          const slot = getSlot(selectedAddress);
+          if (!slot) return;
+
+          el.btnClearSelection.style.display = "inline-flex";
+          el.inspectorContent.className = "";
+
+          let statusLabel = "Livre";
+          let statusClass = "livre";
+          if (slot.status === "OCUPADO") {
+            statusLabel = "Ocupado";
+            statusClass = "ocupado";
+          } else if (slot.status === "INDISPONIVEL") {
+            statusLabel = "Indisponível (Manutenção)";
+            statusClass = "indisponivel";
+          }
+
+          const levelNote =
+            slot.level === 5 ? "Nível 5 (Topo)" : slot.level === 1 ? "Nível 1 (Piso)" : "Nível " + slot.level;
+
+          let html =
+            '<div class="address-display"><span>' +
+            escapeHtml(slot.address) +
+            '</span><span class="status-text ' +
+            statusClass +
+            '">' +
+            statusLabel +
+            "</span></div>";
+
+          if (slot.status === "LIVRE") {
+            html +=
+              '<div class="detail-grid">' +
+              '<div class="detail-item"><span class="detail-label">Rua / Módulo</span><span class="detail-val">Rua ' +
+              slot.aisle +
+              " · " +
+              slot.module +
+              "</span></div>" +
+              '<div class="detail-item"><span class="detail-label">Andar</span><span class="detail-val">' +
+              levelNote +
+              "</span></div>" +
+              "</div>" +
+              '<div style="display:flex;gap:8px;margin-top:14px">' +
+              '<button type="button" id="insp-toggle-block" class="btn btn-secondary" style="width:100%">Bloquear (Manutenção)</button>' +
+              "</div>";
+          } else if (slot.status === "INDISPONIVEL") {
+            html +=
+              '<div class="detail-grid">' +
+              '<div class="detail-item"><span class="detail-label">Rua / Módulo</span><span class="detail-val">Rua ' +
+              slot.aisle +
+              " · " +
+              slot.module +
+              "</span></div>" +
+              '<div class="detail-item"><span class="detail-label">Andar</span><span class="detail-val">' +
+              levelNote +
+              "</span></div>" +
+              '<div class="detail-item full"><span class="detail-label">Situação</span><span class="detail-val">Posição bloqueada para entrada de mercadorias</span></div>' +
+              "</div>" +
+              '<div style="display:flex;gap:8px;margin-top:14px">' +
+              '<button type="button" id="insp-toggle-unblock" class="btn btn-free" style="width:100%">Liberar Posição para Livre</button>' +
+              "</div>";
+          } else {
+            html +=
+              '<div class="detail-grid">' +
+              '<div class="detail-item"><span class="detail-label">Código / SKU</span><span class="detail-val mono">' +
+              escapeHtml(slot.sku) +
+              "</span></div>" +
+              '<div class="detail-item"><span class="detail-label">Quantidade</span><span class="detail-val mono">' +
+              slot.qty +
+              " un.</span></div>" +
+              '<div class="detail-item full"><span class="detail-label">Produto</span><span class="detail-val">' +
+              escapeHtml(slot.product) +
+              "</span></div>" +
+              '<div class="detail-item"><span class="detail-label">Andar</span><span class="detail-val">' +
+              levelNote +
+              "</span></div>" +
+              '<div class="detail-item"><span class="detail-label">Última Movimentação</span><span class="detail-val tabular">' +
+              escapeHtml(formatTime(slot.updatedAt)) +
+              "</span></div>" +
+              "</div>";
+          }
+
+          el.inspectorContent.innerHTML = html;
+
+          const blockBtn = document.getElementById("insp-toggle-block");
+          if (blockBtn) {
+            blockBtn.addEventListener("click", function () {
+              toggleMaintenance(slot.address, true);
+            });
+          }
+
+          const unblockBtn = document.getElementById("insp-toggle-unblock");
+          if (unblockBtn) {
+            unblockBtn.addEventListener("click", function () {
+              toggleMaintenance(slot.address, false);
+            });
+          }
+        }
+
+        function renderOperationSelects() {
+          const prevPutaway = el.putawayAddress.value;
+          const prevPicking = el.pickingAddress.value;
+
+          const freeSlots = warehouse.filter((s) => s.status === "LIVRE");
+          const occSlots = warehouse.filter((s) => s.status === "OCUPADO");
+
+          // Putaway Select (apenas Livres)
+          el.putawayAddress.innerHTML = "";
+          if (freeSlots.length === 0) {
+            const opt = document.createElement("option");
+            opt.value = "";
+            opt.textContent = "Nenhuma posição livre disponível";
+            el.putawayAddress.appendChild(opt);
+            el.putawayAddress.disabled = true;
+            el.btnPutawaySubmit.disabled = true;
+            el.putawayFreeHint.textContent = "Armazém sem endereços livres disponíveis.";
+          } else {
+            el.putawayAddress.disabled = false;
+            el.btnPutawaySubmit.disabled = false;
+            el.putawayFreeHint.textContent =
+              freeSlots.length + " posições livres disponíveis para alocação.";
+            for (const s of freeSlots) {
+              const opt = document.createElement("option");
+              opt.value = s.address;
+              opt.textContent = s.address;
+              el.putawayAddress.appendChild(opt);
+            }
+            if (selectedAddress && freeSlots.some((s) => s.address === selectedAddress)) {
+              el.putawayAddress.value = selectedAddress;
+            } else if (prevPutaway && freeSlots.some((s) => s.address === prevPutaway)) {
+              el.putawayAddress.value = prevPutaway;
+            }
+          }
+
+          // Picking Select (apenas Ocupados)
+          el.pickingAddress.innerHTML = "";
+          if (occSlots.length === 0) {
+            const opt = document.createElement("option");
+            opt.value = "";
+            opt.textContent = "Nenhuma posição ocupada no momento";
+            el.pickingAddress.appendChild(opt);
+            el.pickingAddress.disabled = true;
+            el.btnPickingPartial.disabled = true;
+            el.btnPickingTotal.disabled = true;
+            el.pickingQty.disabled = true;
+          } else {
+            el.pickingAddress.disabled = false;
+            el.btnPickingPartial.disabled = false;
+            el.btnPickingTotal.disabled = false;
+            el.pickingQty.disabled = false;
+            for (const s of occSlots) {
+              const opt = document.createElement("option");
+              opt.value = s.address;
+              opt.textContent = s.address + " (" + s.sku + " · " + s.qty + " un.)";
+              el.pickingAddress.appendChild(opt);
+            }
+            if (selectedAddress && occSlots.some((s) => s.address === selectedAddress)) {
+              el.pickingAddress.value = selectedAddress;
+            } else if (prevPicking && occSlots.some((s) => s.address === prevPicking)) {
+              el.pickingAddress.value = prevPicking;
+            }
+          }
+
+          updatePickingPreview();
+        }
+
+        function updatePickingPreview() {
+          const addr = el.pickingAddress.value;
+          const slot = getSlot(addr);
+          if (!slot || slot.status !== "OCUPADO") {
+            el.pickingPreview.style.display = "none";
+            return;
+          }
+
+          el.pickingPreview.style.display = "flex";
+          el.pickPrevSku.textContent = slot.sku;
+          el.pickPrevProduct.textContent = slot.product;
+          el.pickPrevQty.textContent = slot.qty + " un.";
+          el.pickingQty.max = String(slot.qty);
+          if (Number(el.pickingQty.value) > slot.qty || Number(el.pickingQty.value) < 1) {
+            el.pickingQty.value = String(Math.min(1, slot.qty));
+          }
+        }
+
+        function setTab(tabName) {
+          activeTab = tabName;
+          const isPutaway = tabName === "putaway";
+
+          el.tabPutaway.classList.toggle("active", isPutaway);
+          el.tabPutaway.setAttribute("aria-selected", String(isPutaway));
+          el.tabPicking.classList.toggle("active", !isPutaway);
+          el.tabPicking.setAttribute("aria-selected", String(!isPutaway));
+
+          el.formPutaway.style.display = isPutaway ? "flex" : "none";
+          el.formPicking.style.display = isPutaway ? "none" : "flex";
+        }
+
+        function selectSlot(address) {
+          selectedAddress = address;
+          const slot = getSlot(address);
+          if (slot) {
+            if (slot.status === "LIVRE") {
+              setTab("putaway");
+              el.putawayAddress.value = address;
+            } else if (slot.status === "OCUPADO") {
+              setTab("picking");
+              el.pickingAddress.value = address;
+              el.pickingQty.value = String(Math.min(1, slot.qty));
+            }
+          }
+          renderAll();
+        }
+
+        function toggleMaintenance(address, toBlocked) {
+          const slot = getSlot(address);
+          if (!slot) return;
+          if (toBlocked && slot.status === "LIVRE") {
+            slot.status = "INDISPONIVEL";
+            slot.updatedAt = new Date().toISOString();
+            saveWarehouse();
+            renderAll();
+            showToast(address + " marcada como Indisponível (Manutenção).", "success");
+          } else if (!toBlocked && slot.status === "INDISPONIVEL") {
+            slot.status = "LIVRE";
+            slot.updatedAt = new Date().toISOString();
+            saveWarehouse();
+            renderAll();
+            showToast(address + " reativada para Livre.", "success");
+          }
+        }
+
+        function handlePutawaySubmit(e) {
+          e.preventDefault();
+          const address = el.putawayAddress.value;
+          const sku = el.putawaySku.value.trim().toUpperCase();
+          const product = el.putawayProduct.value.trim();
+          const qty = parseInt(el.putawayQty.value, 10);
+
+          if (!address) {
+            showToast("Selecione um endereço livre.", "error");
+            return;
+          }
+          const slot = getSlot(address);
+          if (!slot || slot.status !== "LIVRE") {
+            showToast("O endereço selecionado não está disponível.", "error");
+            return;
+          }
+          if (!sku) {
+            showToast("Informe o Código / SKU do produto.", "error");
+            el.putawaySku.focus();
+            return;
+          }
+          if (!product) {
+            showToast("Informe o Nome do Produto.", "error");
+            el.putawayProduct.focus();
+            return;
+          }
+          if (!Number.isFinite(qty) || qty <= 0) {
+            showToast("Informe uma quantidade válida (mínimo 1).", "error");
+            el.putawayQty.focus();
+            return;
+          }
+
+          slot.status = "OCUPADO";
+          slot.sku = sku;
+          slot.product = product;
+          slot.qty = qty;
+          slot.updatedAt = new Date().toISOString();
+
+          selectedAddress = address;
+          saveWarehouse();
+          el.putawaySku.value = "";
+          el.putawayProduct.value = "";
+          el.putawayQty.value = "10";
+
+          renderAll();
+          showToast("Entrada confirmada: " + sku + " (" + qty + " un.) em " + address + ".", "success");
+        }
+
+        function executePicking(isTotal) {
+          const address = el.pickingAddress.value;
+          const slot = getSlot(address);
+          if (!slot || slot.status !== "OCUPADO") {
+            showToast("Selecione uma posição ocupada válida.", "error");
+            return;
+          }
+
+          const currentQty = Number(slot.qty);
+          const pickQty = isTotal ? currentQty : parseInt(el.pickingQty.value, 10);
+
+          if (!Number.isFinite(pickQty) || pickQty <= 0) {
+            showToast("Informe uma quantidade válida para saída.", "error");
+            el.pickingQty.focus();
+            return;
+          }
+          if (pickQty > currentQty) {
+            showToast(
+              "Quantidade solicitada (" + pickQty + ") excede o estoque disponível (" + currentQty + ").",
+              "error"
+            );
+            el.pickingQty.focus();
+            return;
+          }
+
+          const removedSku = slot.sku;
+          if (pickQty === currentQty) {
+            slot.status = "LIVRE";
+            slot.sku = "";
+            slot.product = "";
+            slot.qty = 0;
+            slot.updatedAt = new Date().toISOString();
+            showToast("Baixa total realizada em " + address + " (" + removedSku + "). Posição Livre.", "success");
+          } else {
+            slot.qty = currentQty - pickQty;
+            slot.updatedAt = new Date().toISOString();
+            showToast(
+              "Baixa parcial de " + pickQty + " un. em " + address + ". Restam " + slot.qty + " un.",
+              "success"
+            );
+          }
+
+          selectedAddress = address;
+          saveWarehouse();
+          renderAll();
+        }
+
+        function populateSampleData() {
+          const catalog = [
+            { sku: "SKU-1014", product: "Motor Elétrico Trifásico 5CV", qty: 12 },
+            { sku: "SKU-1088", product: "Bomba Centrífuga Inox 2HP", qty: 18 },
+            { sku: "SKU-2041", product: "Caixa Papelão Reforçada 60x40", qty: 240 },
+            { sku: "SKU-2095", product: "Filme Stretch Industrial 500mm", qty: 96 },
+            { sku: "SKU-3110", product: "Válvula Solenoide 24V", qty: 45 },
+            { sku: "SKU-3142", product: "Rolamento Esférico 6205-2RS", qty: 150 },
+            { sku: "SKU-4007", product: "Inversor de Frequência 3kW", qty: 8 },
+            { sku: "SKU-4055", product: "Cabo Elétrico PP 4x2.5mm (Rolo)", qty: 32 },
+            { sku: "SKU-5019", product: "Compressor de Ar 100L", qty: 4 },
+            { sku: "SKU-5082", product: "Óleo Hidráulico ISO VG 68 (20L)", qty: 28 },
+            { sku: "SKU-6030", product: "Sensor Indutivo M12 PNP", qty: 85 },
+            { sku: "SKU-6091", product: "Painel LED Industrial High-Bay 150W", qty: 36 },
+            { sku: "SKU-7012", product: "Correia Transportadora PVC 800mm", qty: 10 },
+            { sku: "SKU-7044", product: "Palete Plástico Higiênico 1200x1000", qty: 40 },
+            { sku: "SKU-8023", product: "Empilhador Manual Hidráulico 2.5T", qty: 3 },
+          ];
+
+          const occupiedIndices = new Set([
+            0, 1, 2, 5, 6, 10, 11, 15, 16, 20, 21, 25,
+            30, 31, 35, 36, 40, 41, 42, 46, 50, 51, 55,
+            60, 61, 62, 65, 66, 70, 75, 76, 80, 85, 86,
+            90, 91, 95, 100, 101, 105, 110, 115, 116,
+            120, 121, 125, 130, 135, 136, 140, 145
+          ]);
+
+          const blockedIndices = new Set([9, 24, 49, 74, 99, 119, 144, 149]);
+
+          const fresh = createEmptyWarehouse();
+          const now = Date.now();
+          let catIdx = 0;
+
+          for (let i = 0; i < fresh.length; i++) {
+            if (blockedIndices.has(i)) {
+              fresh[i].status = "INDISPONIVEL";
+              fresh[i].updatedAt = new Date(now - i * 60000).toISOString();
+            } else if (occupiedIndices.has(i)) {
+              const item = catalog[catIdx % catalog.length];
+              catIdx++;
+              fresh[i].status = "OCUPADO";
+              fresh[i].sku = item.sku;
+              fresh[i].product = item.product;
+              fresh[i].qty = item.qty + (i % 5) * 2;
+              fresh[i].updatedAt = new Date(now - (i + 3) * 180000).toISOString();
+            }
+          }
+
+          warehouse = fresh;
+          selectedAddress = null;
+          saveWarehouse();
+          renderAll();
+          showToast("Armazém populado com dados de exemplo (" + occupiedIndices.size + " posições ocupadas).", "success");
+        }
+
+        function clearWarehouse() {
+          warehouse = createEmptyWarehouse();
+          selectedAddress = null;
+          hideClearConfirm();
+          saveWarehouse();
+          renderAll();
+          showToast("Armazém limpo: todas as 150 posições estão Livres.", "success");
+        }
+
+        function showClearConfirm() {
+          el.btnClearTrigger.style.display = "none";
+          el.confirmClearWrap.classList.add("visible");
+          if (clearConfirmTimer) clearTimeout(clearConfirmTimer);
+          clearConfirmTimer = setTimeout(hideClearConfirm, 5000);
+        }
+
+        function hideClearConfirm() {
+          if (clearConfirmTimer) {
+            clearTimeout(clearConfirmTimer);
+            clearConfirmTimer = null;
+          }
+          el.confirmClearWrap.classList.remove("visible");
+          el.btnClearTrigger.style.display = "inline-flex";
+        }
+
+        function renderAll() {
+          renderDashboard();
+          renderMap();
+          renderInventoryTable();
+          renderInspector();
+          renderOperationSelects();
+        }
+
+        function bindEvents() {
+          el.searchInput.addEventListener("input", function (e) {
+            searchQuery = e.target.value;
+            el.searchClear.classList.toggle("visible", searchQuery.length > 0);
+            renderMap();
+            renderInventoryTable();
+          });
+
+          el.searchClear.addEventListener("click", function () {
+            searchQuery = "";
+            el.searchInput.value = "";
+            el.searchClear.classList.remove("visible");
+            renderMap();
+            renderInventoryTable();
+            el.searchInput.focus();
+          });
+
+          el.filterButtons.forEach(function (btn) {
+            btn.addEventListener("click", function () {
+              stateFilter = btn.getAttribute("data-state-filter") || "ALL";
+              el.filterButtons.forEach(function (b) {
+                b.classList.toggle("active", b === btn);
+              });
+              renderMap();
+            });
+          });
+
+          el.aisleFilter.addEventListener("change", function (e) {
+            aisleFilter = e.target.value;
+            renderMap();
+            renderInventoryTable();
+          });
+
+          el.btnClearSelection.addEventListener("click", function () {
+            selectedAddress = null;
+            renderAll();
+          });
+
+          el.tabPutaway.addEventListener("click", function () {
+            setTab("putaway");
+          });
+
+          el.tabPicking.addEventListener("click", function () {
+            setTab("picking");
+          });
+
+          el.putawayAddress.addEventListener("change", function (e) {
+            if (e.target.value) {
+              selectedAddress = e.target.value;
+              renderMap();
+              renderInspector();
+            }
+          });
+
+          el.pickingAddress.addEventListener("change", function (e) {
+            if (e.target.value) {
+              selectedAddress = e.target.value;
+              updatePickingPreview();
+              renderMap();
+              renderInspector();
+              renderInventoryTable();
+            }
+          });
+
+          document.querySelectorAll("[data-pick-preset]").forEach(function (btn) {
+            btn.addEventListener("click", function () {
+              const slot = getSlot(el.pickingAddress.value);
+              if (!slot || slot.status !== "OCUPADO") return;
+              const preset = btn.getAttribute("data-pick-preset");
+              if (preset === "1") {
+                el.pickingQty.value = "1";
+              } else if (preset === "half") {
+                el.pickingQty.value = String(Math.max(1, Math.floor(slot.qty / 2)));
+              } else if (preset === "all") {
+                el.pickingQty.value = String(slot.qty);
+              }
+            });
+          });
+
+          el.formPutaway.addEventListener("submit", handlePutawaySubmit);
+
+          el.formPicking.addEventListener("submit", function (e) {
+            e.preventDefault();
+            executePicking(false);
+          });
+
+          el.btnPickingTotal.addEventListener("click", function () {
+            executePicking(true);
+          });
+
+          el.btnSeed.addEventListener("click", populateSampleData);
+          el.btnClearTrigger.addEventListener("click", showClearConfirm);
+          el.btnClearConfirm.addEventListener("click", clearWarehouse);
+          el.btnClearCancel.addEventListener("click", hideClearConfirm);
+        }
+
+        // Inicialização
+        loadWarehouse();
+        bindEvents();
+        renderAll();
+      })();
+    </script>
+  </body>
+</html>

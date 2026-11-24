@@ -1,0 +1,6 @@
+{
+  "name": "WMS Porta-Paletes",
+  "description": "Sistema de Gestão de Armazém (WMS) simplificado para controle visual de 150 posições porta-paletes, putaway, picking e rastreio de SKUs.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
